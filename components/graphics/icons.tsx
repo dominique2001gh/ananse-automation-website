@@ -179,3 +179,41 @@ export function IconBag(props: SVGProps<SVGSVGElement>) {
     </Base>
   );
 }
+
+export function IconGrid(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.2" />
+      <rect x="13" y="3.5" width="7.5" height="7.5" rx="1.2" />
+      <rect x="3.5" y="13" width="7.5" height="7.5" rx="1.2" />
+      <rect x="13" y="13" width="7.5" height="7.5" rx="1.2" />
+    </Base>
+  );
+}
+
+export function IconBulb(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <path d="M9 18.5h6M9.5 21h5" />
+      <path d="M12 3.5a6 6 0 0 0-3.5 10.9c.6.45 1 1.15 1 1.9v.7h5v-.7c0-.75.4-1.45 1-1.9A6 6 0 0 0 12 3.5Z" />
+    </Base>
+  );
+}
+
+export function IconPerson(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <circle cx="12" cy="7.5" r="3.5" />
+      <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+    </Base>
+  );
+}
+
+export function IconEnvelope(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <rect x="3.5" y="5.5" width="17" height="13" rx="1.5" />
+      <path d="m4.5 6.5 7.5 6.5 7.5-6.5" />
+    </Base>
+  );
+}
