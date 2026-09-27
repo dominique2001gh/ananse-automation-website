@@ -10,6 +10,7 @@ export type NavLink = {
 // require fabricating client case studies this project has no basis for.
 export const navLinks: NavLink[] = [
   { label: "Services", href: "/services" },
+  { label: "Analytics", href: "/analytics" },
   { label: "Solutions", href: "/solutions" },
   { label: "Industries", href: "/industries" },
   { label: "Our Work", href: "/solutions" },

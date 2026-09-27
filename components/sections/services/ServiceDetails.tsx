@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Container from "@/components/ui/Container";
 import { servicePillars } from "@/lib/services-data";
 
@@ -79,6 +80,18 @@ export default function ServiceDetails() {
                     {pillar.outcome}
                   </p>
                 </div>
+
+                {pillar.id === "data-analytics" ? (
+                  <Link
+                    href="/analytics"
+                    className="group inline-flex w-fit items-center gap-2 text-sm font-medium text-gold transition-colors hover:text-gold-bright"
+                  >
+                    See a live dashboard demo
+                    <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5">
+                      →
+                    </span>
+                  </Link>
+                ) : null}
               </div>
             </Container>
           </section>

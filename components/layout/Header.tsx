@@ -8,6 +8,7 @@ import Container from "@/components/ui/Container";
 import { navLinks, type NavLink } from "@/lib/nav";
 import {
   IconGrid,
+  IconChartBar,
   IconBulb,
   IconBuilding,
   IconBriefcase,
@@ -20,6 +21,7 @@ import type { ComponentType, SVGProps } from "react";
 // doesn't silently orphan an icon.
 const navIcons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   Services: IconGrid,
+  Analytics: IconChartBar,
   Solutions: IconBulb,
   Industries: IconBuilding,
   "Our Work": IconBriefcase,

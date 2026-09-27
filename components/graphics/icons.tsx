@@ -217,3 +217,51 @@ export function IconEnvelope(props: SVGProps<SVGSVGElement>) {
     </Base>
   );
 }
+
+export function IconUsers(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <circle cx="9" cy="8.5" r="3" />
+      <path d="M3.5 20a5.5 5.5 0 0 1 11 0" />
+      <path d="M15.5 6.2a3 3 0 0 1 0 5.8M18.5 20a5 5 0 0 0-3.3-6.7" />
+    </Base>
+  );
+}
+
+export function IconCalendar(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="1.5" />
+      <path d="M3.5 9.5h17M8 3v4M16 3v4" />
+      <path d="M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2" />
+    </Base>
+  );
+}
+
+export function IconReceipt(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <path d="M6 3.5h12v17l-2.2-1.5L13.6 21l-1.6-1.5L10.4 21l-2.2-1.5L6 20.5Z" />
+      <path d="M8.5 8h7M8.5 11.5h7M8.5 15h4.5" />
+    </Base>
+  );
+}
+
+export function IconSpreadsheet(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <rect x="3.5" y="4" width="17" height="16" rx="1.5" />
+      <path d="M3.5 9.5h17M9.5 9.5V20M15 9.5V20M3.5 14.5h17" />
+    </Base>
+  );
+}
+
+export function IconDatabase(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Base {...props}>
+      <ellipse cx="12" cy="6" rx="8" ry="3" />
+      <path d="M4 6v12c0 1.66 3.58 3 8 3s8-1.34 8-3V6" />
+      <path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3" />
+    </Base>
+  );
+}
