@@ -14,6 +14,7 @@ import { validateQuestionnaire } from "@/lib/questionnaire-validation";
 import { deliverQuestionnaire } from "@/lib/questionnaire-delivery";
 import { looksLikeBot } from "@/lib/contact-delivery";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
+import { upsertLeadFromQuestionnaire } from "@/lib/leads";
 
 // A long-form questionnaire is a deliberate, one-time submission -- same
 // generous-but-bounded window as the contact form.
@@ -52,7 +53,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const delivery = await deliverQuestionnaire(result.data);
+  // Runs independently, in parallel, with email delivery -- a CRM write
+  // failure must never block or change the response the visitor sees,
+  // and email delivery must never wait on (or be skipped because of) the
+  // database. See lib/leads.ts.
+  const [leadResult, delivery] = await Promise.all([
+    upsertLeadFromQuestionnaire(result.data),
+    deliverQuestionnaire(result.data),
+  ]);
+
+  if (!leadResult.ok) {
+    console.error(
+      "[project-questionnaire] CRM lead write failed (email delivery unaffected):",
+      leadResult.error
+    );
+  }
+
   if (!delivery.ok) {
     const status = delivery.error === "not_configured" ? 503 : 502;
     return NextResponse.json({ ok: false, error: delivery.error }, { status });

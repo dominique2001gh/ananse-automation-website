@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateContactInquiry } from "@/lib/contact-validation";
 import { deliverInquiry, looksLikeBot } from "@/lib/contact-delivery";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
+import { upsertLeadFromContact } from "@/lib/leads";
 
 // Same IP: at most 5 inquiries per 10 minutes. Generous enough for a real
 // visitor retrying a typo, tight enough to blunt a naive script.
@@ -40,7 +41,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const delivery = await deliverInquiry(result.data);
+  // Runs independently, in parallel, with email delivery -- a CRM write
+  // failure must never block or change the response the visitor sees,
+  // and email delivery must never wait on (or be skipped because of) the
+  // database. See lib/leads.ts.
+  const [leadResult, delivery] = await Promise.all([
+    upsertLeadFromContact(result.data),
+    deliverInquiry(result.data),
+  ]);
+
+  if (!leadResult.ok) {
+    console.error("[contact] CRM lead write failed (email delivery unaffected):", leadResult.error);
+  }
+
   if (!delivery.ok) {
     const status = delivery.error === "not_configured" ? 503 : 502;
     return NextResponse.json({ ok: false, error: delivery.error }, { status });
