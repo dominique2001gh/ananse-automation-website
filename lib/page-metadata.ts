@@ -17,7 +17,7 @@ import type { Metadata } from "next";
  * the actual page being shared.
  */
 
-const siteUrl = "https://ananseautomation.com";
+const siteUrl = "https://www.ananseautomation.com";
 const ogImage = {
   url: "/brand/ananse-logo-lockup.png",
   width: 1365,

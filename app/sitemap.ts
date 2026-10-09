@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = "https://ananseautomation.com";
+const siteUrl = "https://www.ananseautomation.com";
 
 // Keep in sync with lib/nav.ts / the actual routes under app/. Every route
 // here is a real page with an approved metadata title.

@@ -11,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
       // robots.txt won't even request these paths.
       disallow: ["/admin", "/api"],
     },
-    sitemap: "https://ananseautomation.com/sitemap.xml",
+    sitemap: "https://www.ananseautomation.com/sitemap.xml",
   };
 }

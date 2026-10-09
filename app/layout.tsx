@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://ananseautomation.com";
+const siteUrl = "https://www.ananseautomation.com";
 const description =
   "Ananse Automation is a technology consulting and software development company that helps small and medium-sized businesses solve operational problems using data analytics, AI, automation, websites and custom software.";
 

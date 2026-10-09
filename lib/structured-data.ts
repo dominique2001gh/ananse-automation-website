@@ -12,7 +12,7 @@
  * city claims.
  */
 
-const siteUrl = "https://ananseautomation.com";
+const siteUrl = "https://www.ananseautomation.com";
 // Google's logo guidelines for Organization structured data call for a
 // roughly square mark, not a wide wordmark lockup -- ananse-logo-mark.png
 // (497x436, an existing brand asset already shipped in public/brand/) is
