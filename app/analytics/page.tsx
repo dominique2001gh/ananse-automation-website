@@ -5,6 +5,7 @@ import AskYourData from "@/components/sections/analytics/AskYourData";
 import AlreadyHaveSoftware from "@/components/sections/analytics/AlreadyHaveSoftware";
 import FinalCta from "@/components/sections/FinalCta";
 import { buildPageMetadata } from "@/lib/page-metadata";
+import { serviceJsonLd, jsonLdScriptProps } from "@/lib/structured-data";
 
 export const metadata = buildPageMetadata({
   path: "/analytics",
@@ -16,6 +17,18 @@ export const metadata = buildPageMetadata({
 export default function AnalyticsPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScriptProps(
+          serviceJsonLd({
+            name: "Data Analytics & Business Intelligence",
+            description:
+              "Custom dashboards, automated reporting, and an AI data analyst built around the questions your management team actually asks, using the CRM, POS, booking, accounting, and spreadsheet data you already have.",
+            path: "/analytics",
+            serviceType: "Data Analytics & Business Intelligence",
+          })
+        )}
+      />
       <AnalyticsHero />
       <DataSourcesFlow />
       <LiveDashboardDemo />

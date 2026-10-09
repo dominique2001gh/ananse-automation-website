@@ -18,7 +18,12 @@ import type { Metadata } from "next";
  */
 
 const siteUrl = "https://ananseautomation.com";
-const ogImage = { url: "/brand/ananse-logo-lockup.png", width: 1365, height: 421 };
+const ogImage = {
+  url: "/brand/ananse-logo-lockup.png",
+  width: 1365,
+  height: 421,
+  alt: "Ananse Automation",
+};
 
 export function buildPageMetadata({
   path,

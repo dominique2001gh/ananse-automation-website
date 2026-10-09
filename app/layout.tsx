@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import SiteChrome from "@/components/layout/SiteChrome";
+import { organizationJsonLd, websiteJsonLd, jsonLdScriptProps } from "@/lib/structured-data";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,7 +31,14 @@ export const metadata: Metadata = {
     description,
     url: siteUrl,
     siteName: "Ananse Automation",
-    images: [{ url: "/brand/ananse-logo-lockup.png", width: 1365, height: 421 }],
+    images: [
+      {
+        url: "/brand/ananse-logo-lockup.png",
+        width: 1365,
+        height: 421,
+        alt: "Ananse Automation",
+      },
+    ],
     locale: "en_US",
     type: "website",
   },
@@ -42,6 +50,11 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#faf8f4",
+  colorScheme: "light",
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -49,6 +62,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-paper text-ink">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={jsonLdScriptProps(organizationJsonLd())}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={jsonLdScriptProps(websiteJsonLd())}
+        />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:text-sm focus:font-medium focus:text-paper focus:outline-none focus:ring-2 focus:ring-gold"

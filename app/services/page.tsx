@@ -5,6 +5,8 @@ import NotSureSection from "@/components/sections/services/NotSureSection";
 import EngagementSteps from "@/components/sections/services/EngagementSteps";
 import FinalCta from "@/components/sections/FinalCta";
 import { buildPageMetadata } from "@/lib/page-metadata";
+import { servicePillars } from "@/lib/services-data";
+import { serviceJsonLd, jsonLdScriptProps } from "@/lib/structured-data";
 
 export const metadata = buildPageMetadata({
   path: "/services",
@@ -16,6 +18,20 @@ export const metadata = buildPageMetadata({
 export default function ServicesPage() {
   return (
     <>
+      {servicePillars.map((pillar) => (
+        <script
+          key={pillar.id}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={jsonLdScriptProps(
+            serviceJsonLd({
+              name: pillar.title,
+              description: pillar.positioning,
+              path: `/services#${pillar.id}`,
+              serviceType: pillar.title,
+            })
+          )}
+        />
+      ))}
       <ServicesHero />
       <ServicesOverview />
       <ServiceDetails />
