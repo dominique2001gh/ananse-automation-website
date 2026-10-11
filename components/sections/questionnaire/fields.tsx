@@ -28,6 +28,7 @@ export function TextField({
   error,
   autoComplete,
   hint,
+  disabled,
 }: {
   id: string;
   label: string;
@@ -39,6 +40,10 @@ export function TextField({
   error?: string;
   autoComplete?: string;
   hint?: string;
+  /** Renders the input read-only, e.g. a pre-filled value a dedicated
+   * questionnaire link shouldn't let the respondent change. Optional and
+   * defaults to editable, so every existing caller is unaffected. */
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -59,7 +64,8 @@ export function TextField({
         placeholder={placeholder}
         autoComplete={autoComplete}
         aria-invalid={Boolean(error)}
-        className={questionnaireInputClass}
+        disabled={disabled}
+        className={`${questionnaireInputClass} disabled:cursor-not-allowed disabled:bg-paper-dim disabled:text-slate`}
       />
       {error ? (
         <p role="alert" className="text-xs text-terracotta">
