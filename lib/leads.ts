@@ -22,6 +22,7 @@
 import { getSupabaseAdminClient } from "./supabase/admin";
 import type { ContactInquiry } from "./contact";
 import type { QuestionnaireDraft } from "./questionnaire";
+import type { DashPostalQuestionnaireDraft } from "./questionnaire-dash-postal";
 
 export const LEAD_SOURCE_LABELS: Record<string, string> = {
   contact_form: "Contact Form",
@@ -183,6 +184,70 @@ export async function upsertLeadFromQuestionnaire(data: QuestionnaireDraft): Pro
   } catch (err) {
     console.error(
       "[leads] upsertLeadFromQuestionnaire failed:",
+      err instanceof Error ? err.message : err
+    );
+    return { ok: false, error: "lead_write_failed" };
+  }
+}
+
+/**
+ * Dash Postal and Tax Services' dedicated questionnaire
+ * (lib/questionnaire-dash-postal.ts) uses its own, differently-shaped
+ * draft type (see that file for why), but still writes through this same
+ * shared leads layer -- same `source: "questionnaire"` value as every
+ * other questionnaire submission (no new enum/CHECK-constraint value, so
+ * no schema change), with `business_name` fixed to associate every
+ * submission with this prospect.
+ */
+export async function upsertLeadFromDashPostalQuestionnaire(
+  data: DashPostalQuestionnaireDraft
+): Promise<LeadWriteResult> {
+  try {
+    const supabase = getSupabaseAdminClient();
+    const duplicate = await findRecentDuplicate("questionnaire", data.contactEmail);
+
+    const payload = {
+      source: "questionnaire",
+      contact_name: data.contactName,
+      contact_email: data.contactEmail,
+      contact_phone: data.contactPhone || null,
+      business_name: data.businessName || null,
+      preferred_contact_method: data.preferredContactMethod || null,
+      requested_services: data.desiredFeatures,
+      primary_message: data.topPriorities || data.anythingElse || data.servicesToPromote || null,
+    };
+
+    let leadId: string;
+    if (duplicate) {
+      const { error } = await supabase.from("leads").update(payload).eq("id", duplicate.id);
+      if (error) throw error;
+      leadId = duplicate.id;
+      await logActivity(leadId, null, "other", {
+        note: "Duplicate Dash Postal questionnaire submission within 24h -- existing lead updated instead of creating a new one.",
+      });
+    } else {
+      const { data: inserted, error } = await supabase
+        .from("leads")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw error;
+      leadId = inserted.id;
+      await logActivity(leadId, null, "created", { source: "questionnaire" });
+    }
+
+    const { error: answersError } = await supabase
+      .from("questionnaire_responses")
+      .upsert(
+        { lead_id: leadId, answers: data, submitted_at: new Date().toISOString() },
+        { onConflict: "lead_id" }
+      );
+    if (answersError) throw answersError;
+
+    return { ok: true, leadId };
+  } catch (err) {
+    console.error(
+      "[leads] upsertLeadFromDashPostalQuestionnaire failed:",
       err instanceof Error ? err.message : err
     );
     return { ok: false, error: "lead_write_failed" };
