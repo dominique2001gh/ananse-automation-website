@@ -24,6 +24,7 @@ import type { ContactInquiry } from "./contact";
 import type { QuestionnaireDraft } from "./questionnaire";
 import type { DashPostalQuestionnaireDraft } from "./questionnaire-dash-postal";
 import type { TaxOfficeTexasQuestionnaireDraft } from "./questionnaire-tax-office-texas";
+import type { ZimelaWellnessQuestionnaireDraft } from "./questionnaire-zimela-wellness";
 
 export const LEAD_SOURCE_LABELS: Record<string, string> = {
   contact_form: "Contact Form",
@@ -337,6 +338,73 @@ export async function upsertLeadFromTaxOfficeTexasQuestionnaire(
   } catch (err) {
     console.error(
       "[leads] upsertLeadFromTaxOfficeTexasQuestionnaire failed:",
+      err instanceof Error ? err.message : err
+    );
+    return { ok: false, error: "lead_write_failed" };
+  }
+}
+
+/**
+ * Zimela Wellness Center's dedicated questionnaire (lib/questionnaire-
+ * zimela-wellness.ts) is a third, isolated copy of the Dash Postal/Tax
+ * Office Texas draft shape for a different prospect at a different URL,
+ * but still writes through this same shared leads layer -- same
+ * `source: "questionnaire"` value as every other questionnaire
+ * submission (no new enum/CHECK-constraint value, so no schema change),
+ * with `business_name` fixed to associate every submission with this
+ * prospect. Only business/operational answers are ever written here --
+ * no patient name, diagnosis, or other PHI field exists on this draft
+ * type to begin with.
+ */
+export async function upsertLeadFromZimelaWellnessQuestionnaire(
+  data: ZimelaWellnessQuestionnaireDraft
+): Promise<LeadWriteResult> {
+  try {
+    const supabase = getSupabaseAdminClient();
+    const duplicate = await findRecentDuplicate("questionnaire", data.contactEmail);
+
+    const payload = {
+      source: "questionnaire",
+      contact_name: data.contactName,
+      contact_email: data.contactEmail,
+      contact_phone: data.contactPhone || null,
+      business_name: data.businessName || null,
+      preferred_contact_method: data.preferredContactMethod || null,
+      requested_services: data.servicesOffered,
+      primary_message: data.topPriorities || data.anythingElse || data.practiceLocations || null,
+    };
+
+    let leadId: string;
+    if (duplicate) {
+      const { error } = await supabase.from("leads").update(payload).eq("id", duplicate.id);
+      if (error) throw error;
+      leadId = duplicate.id;
+      await logActivity(leadId, null, "other", {
+        note: "Duplicate Zimela Wellness Center questionnaire submission within 24h -- existing lead updated instead of creating a new one.",
+      });
+    } else {
+      const { data: inserted, error } = await supabase
+        .from("leads")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw error;
+      leadId = inserted.id;
+      await logActivity(leadId, null, "created", { source: "questionnaire" });
+    }
+
+    const { error: answersError } = await supabase
+      .from("questionnaire_responses")
+      .upsert(
+        { lead_id: leadId, answers: data, submitted_at: new Date().toISOString() },
+        { onConflict: "lead_id" }
+      );
+    if (answersError) throw answersError;
+
+    return { ok: true, leadId };
+  } catch (err) {
+    console.error(
+      "[leads] upsertLeadFromZimelaWellnessQuestionnaire failed:",
       err instanceof Error ? err.message : err
     );
     return { ok: false, error: "lead_write_failed" };

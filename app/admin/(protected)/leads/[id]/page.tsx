@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { LEAD_SOURCE_LABELS, PIPELINE_STATUSES } from "@/lib/leads";
 import QuestionnaireAnswers from "@/components/admin/QuestionnaireAnswers";
+import ZimelaWellnessQuestionnaireAnswers from "@/components/admin/ZimelaWellnessQuestionnaireAnswers";
 import type { QuestionnaireDraft } from "@/lib/questionnaire";
+import {
+  ZIMELA_WELLNESS_BUSINESS_NAME,
+  type ZimelaWellnessQuestionnaireDraft,
+} from "@/lib/questionnaire-zimela-wellness";
 import { updateLeadStatusAction, addNoteAction } from "./actions";
 
 export const metadata = {
@@ -164,7 +169,13 @@ export default async function LeadDetailPage({
           {questionnaire ? (
             <section className="rounded-2xl border border-line bg-paper p-6">
               <h2 className="mb-4 text-sm font-semibold text-ink">Questionnaire Answers</h2>
-              <QuestionnaireAnswers answers={questionnaire.answers as QuestionnaireDraft} />
+              {lead.business_name === ZIMELA_WELLNESS_BUSINESS_NAME ? (
+                <ZimelaWellnessQuestionnaireAnswers
+                  answers={questionnaire.answers as ZimelaWellnessQuestionnaireDraft}
+                />
+              ) : (
+                <QuestionnaireAnswers answers={questionnaire.answers as QuestionnaireDraft} />
+              )}
             </section>
           ) : null}
 
