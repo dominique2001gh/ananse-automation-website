@@ -27,9 +27,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateDashPostalQuestionnaire } from "@/lib/questionnaire-dash-postal-validation";
 import { deliverDashPostalQuestionnaire } from "@/lib/questionnaire-dash-postal-delivery";
-import { looksLikeBot } from "@/lib/contact-delivery";
+import { looksLikeBot, logBotCheckRejection } from "@/lib/contact-delivery";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
-import { upsertLeadFromDashPostalQuestionnaire } from "@/lib/leads";
+import { upsertLeadFromDashPostalQuestionnaire, logEmailDeliveryActivity } from "@/lib/leads";
 import {
   resolveSubmissionOutcome,
   createIdempotencyStore,
@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
   // Spam heuristics run before validation, and respond as if nothing was
   // wrong -- a real error response here just teaches bots what to fix.
   if (looksLikeBot(record.honeypot, record.startedAt)) {
+    logBotCheckRejection("dash-postal-questionnaire", record.honeypot, record.startedAt);
     return NextResponse.json({ ok: true, crmSaved: true });
   }
 
@@ -108,6 +109,13 @@ export async function POST(request: NextRequest) {
         leadResult.error,
         delivery.error
       );
+    }
+
+    if (leadResult.ok) {
+      // Diagnostic-only, additive -- surfaces the email outcome on the
+      // lead itself in the admin CRM instead of only an ephemeral server
+      // log. Never affects the response below either way.
+      await logEmailDeliveryActivity(leadResult.leadId, delivery);
     }
 
     const outcome = resolveSubmissionOutcome(leadResult.ok, delivery.ok);

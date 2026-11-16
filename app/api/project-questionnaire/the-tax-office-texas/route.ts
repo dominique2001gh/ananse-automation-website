@@ -29,9 +29,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateTaxOfficeTexasQuestionnaire } from "@/lib/questionnaire-tax-office-texas-validation";
 import { deliverTaxOfficeTexasQuestionnaire } from "@/lib/questionnaire-tax-office-texas-delivery";
-import { looksLikeBot } from "@/lib/contact-delivery";
+import { looksLikeBot, logBotCheckRejection } from "@/lib/contact-delivery";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
-import { upsertLeadFromTaxOfficeTexasQuestionnaire } from "@/lib/leads";
+import { upsertLeadFromTaxOfficeTexasQuestionnaire, logEmailDeliveryActivity } from "@/lib/leads";
 import {
   resolveSubmissionOutcome,
   createIdempotencyStore,
@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
   // Spam heuristics run before validation, and respond as if nothing was
   // wrong -- a real error response here just teaches bots what to fix.
   if (looksLikeBot(record.honeypot, record.startedAt)) {
+    logBotCheckRejection("the-tax-office-texas-questionnaire", record.honeypot, record.startedAt);
     return NextResponse.json({ ok: true, crmSaved: true });
   }
 
@@ -110,6 +111,13 @@ export async function POST(request: NextRequest) {
         leadResult.error,
         delivery.error
       );
+    }
+
+    if (leadResult.ok) {
+      // Diagnostic-only, additive -- surfaces the email outcome on the
+      // lead itself in the admin CRM instead of only an ephemeral server
+      // log. Never affects the response below either way.
+      await logEmailDeliveryActivity(leadResult.leadId, delivery);
     }
 
     const outcome = resolveSubmissionOutcome(leadResult.ok, delivery.ok);

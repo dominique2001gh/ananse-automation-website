@@ -30,7 +30,7 @@ const ACTIVITY_LABELS: Record<string, string> = {
   created: "Lead created",
   status_change: "Status changed",
   note_added: "Note added",
-  email_sent: "Email sent",
+  email_sent: "Email notification",
   assigned: "Assigned",
   other: "Update",
 };
@@ -238,7 +238,11 @@ export default async function LeadDetailPage({
                     {ACTIVITY_LABELS[activity.activity_type] ?? activity.activity_type}
                     {activity.activity_type === "status_change" && activity.detail
                       ? ` — ${String(activity.detail.from)} → ${String(activity.detail.to)}`
-                      : null}
+                      : activity.activity_type === "email_sent" && activity.detail
+                        ? activity.detail.ok
+                          ? " — delivered"
+                          : ` — failed (${String(activity.detail.error ?? "unknown")})`
+                        : null}
                   </p>
                   <p className="text-xs text-slate">
                     {activity.admin_profiles?.display_name ?? "System"} —{" "}

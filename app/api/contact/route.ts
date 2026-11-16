@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateContactInquiry } from "@/lib/contact-validation";
-import { deliverInquiry, looksLikeBot } from "@/lib/contact-delivery";
+import { deliverInquiry, looksLikeBot, logBotCheckRejection } from "@/lib/contact-delivery";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 import { upsertLeadFromContact } from "@/lib/leads";
 
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
   // Spam heuristics run before validation, and respond as if nothing was
   // wrong -- a real error response here just teaches bots what to fix.
   if (looksLikeBot(record.honeypot, record.startedAt)) {
+    logBotCheckRejection("contact", record.honeypot, record.startedAt);
     return NextResponse.json({ ok: true });
   }
 

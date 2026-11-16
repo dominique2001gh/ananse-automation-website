@@ -30,6 +30,32 @@ export function looksLikeBot(honeypot: unknown, startedAt: unknown): boolean {
   return false;
 }
 
+/**
+ * Diagnostic-only: logs *why* `looksLikeBot` rejected a submission, so a
+ * false positive (e.g. browser autofill populating the honeypot) can be
+ * told apart from an actual bot after the fact -- this branch previously
+ * left zero trace anywhere, which made the handful of silent rejections
+ * indistinguishable from "the visitor just never submitted."
+ *
+ * Deliberately logs only non-identifying signal metadata -- never the
+ * honeypot's actual contents (which, on a false positive, could be a real
+ * name/address autofill put there), no IP, no email, no answers. Call this
+ * only in the branch where `looksLikeBot(...)` already returned true.
+ */
+export function logBotCheckRejection(route: string, honeypot: unknown, startedAt: unknown): void {
+  const honeypotFilled = typeof honeypot === "string" && honeypot.trim().length > 0;
+  const elapsedMs =
+    typeof startedAt === "number" && Number.isFinite(startedAt) ? Date.now() - startedAt : null;
+  const tooFast = elapsedMs !== null && elapsedMs < MIN_FILL_TIME_MS;
+
+  console.warn(`[bot-check] rejected a "${route}" submission`, {
+    trigger: honeypotFilled && tooFast ? "honeypot+timing" : honeypotFilled ? "honeypot" : "timing",
+    honeypotFilled,
+    honeypotLength: honeypotFilled ? (honeypot as string).trim().length : 0,
+    elapsedMs,
+  });
+}
+
 export async function deliverInquiry(
   inquiry: ContactInquiry
 ): Promise<DeliveryResult> {

@@ -50,6 +50,28 @@ export const PIPELINE_STATUSES: { key: string; label: string }[] = [
 
 export type LeadWriteResult = { ok: true; leadId: string } | { ok: false; error: string };
 
+/**
+ * Records whether the admin notification email for a lead succeeded or
+ * failed -- additive, diagnostic-only. Previously `"email_sent"` existed in
+ * logActivity's type union but no caller ever used it, so an email
+ * failure was visible only as a `console.error` line in ephemeral server
+ * logs and never showed up anywhere in the CRM. Only call this once the
+ * lead write itself has already succeeded (it needs a real `leadId`); a
+ * failure here is logged internally by `logActivity` and never thrown, so
+ * it can't affect the caller's response.
+ */
+export async function logEmailDeliveryActivity(
+  leadId: string,
+  delivery: { ok: true } | { ok: false; error: string }
+): Promise<void> {
+  await logActivity(
+    leadId,
+    null,
+    "email_sent",
+    delivery.ok ? { ok: true } : { ok: false, error: delivery.error }
+  );
+}
+
 // A second submission from the same source/email within this window is
 // treated as the same intake event (accidental double-submit, retry, or a
 // deliberate resend) and updates the existing lead instead of creating a

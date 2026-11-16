@@ -431,11 +431,19 @@ export type QuestionnaireSubmission = QuestionnaireDraft & {
   /** `Date.now()` captured when the questionnaire first rendered, used
    * server-side as a minimum-fill-time spam heuristic. */
   startedAt: number;
+  /** Stable id generated once per wizard session (see
+   * QuestionnaireWizard.tsx), unchanged across Back/Next and across a
+   * retry after a failed submit -- only regenerated when starting a new
+   * questionnaire. Lets the server recognize a double-click or a browser/
+   * network retry of the exact same submission and avoid writing a
+   * duplicate lead or sending a duplicate email. See
+   * app/api/project-questionnaire/route.ts and lib/questionnaire-outcome.ts. */
+  submissionId: string;
 };
 
 export type QuestionnaireSubmitResult =
-  | { ok: true }
-  | { ok: false; error: string; fieldErrors?: QuestionnaireFieldErrors };
+  | { ok: true; crmSaved: boolean }
+  | { ok: false; error: string; fieldErrors?: QuestionnaireFieldErrors; retryable?: boolean };
 
 export async function submitQuestionnaire(
   submission: QuestionnaireSubmission
@@ -448,14 +456,15 @@ export async function submitQuestionnaire(
     });
     const data = await res.json().catch(() => null);
 
-    if (res.ok && data?.ok) return { ok: true };
+    if (res.ok && data?.ok) return { ok: true, crmSaved: data?.crmSaved !== false };
 
     return {
       ok: false,
       error: typeof data?.error === "string" ? data.error : "unknown_error",
       fieldErrors: data?.fieldErrors,
+      retryable: data?.retryable,
     };
   } catch {
-    return { ok: false, error: "network_error" };
+    return { ok: false, error: "network_error", retryable: true };
   }
 }
